@@ -1,0 +1,1234 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+  <title>Data Center — Simulación 3D HVAC | Gerson Misael Pintado Huaman</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@500;700;800&display=swap" rel="stylesheet">
+  <script src="assets/three.min.js"></script>
+  <script src="assets/OrbitControls.js"></script>
+  <script>if(typeof THREE==='undefined')document.write('<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"><\/script>');</script>
+  <script>if(typeof THREE!=='undefined'&&!THREE.OrbitControls)document.write('<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"><\/script>');</script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;user-select:none}
+html,body{width:100%;height:100%;overflow:hidden;background:#050811;
+  font-family:'Inter',sans-serif;color:#f1f5f9}
+#cv{position:absolute;inset:0;z-index:1;display:block}
+
+/* Glassmorphism panel base */
+.gc{position:absolute;background:rgba(8,15,32,.86);
+  backdrop-filter:blur(20px) saturate(170%);-webkit-backdrop-filter:blur(20px) saturate(170%);
+  border:1px solid rgba(56,189,248,.22);border-radius:14px;
+  box-shadow:0 10px 40px rgba(0,0,0,.75),inset 0 1px 0 rgba(255,255,255,.08);
+  z-index:10;pointer-events:auto;transition:border-color .2s}
+
+/* ── HEADER top-left ── */
+#hdr{top:14px;left:14px;padding:12px 16px;display:flex;align-items:center;gap:12px;max-width:390px}
+.hicn{flex-shrink:0;width:44px;height:44px;border-radius:10px;
+  background:linear-gradient(135deg,#0284c7,#0369a1);
+  border:1px solid rgba(56,189,248,.6);box-shadow:0 0 20px rgba(14,165,233,.5);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px}
+.rl{width:22px;height:5px;border-radius:2px;background:#e0f2fe;position:relative}
+.rl::before{content:'';position:absolute;left:2px;top:1px;width:3px;height:3px;border-radius:50%;background:#0284c7}
+.htx h1{font-size:14.5px;font-weight:800;color:#fff;letter-spacing:-.2px;line-height:1.2}
+.htx p{font-size:10.5px;color:#7dd3fc;margin-top:2px;font-weight:500}
+.htx small{font-size:9.5px;color:#94a3b8;margin-top:3px;display:block}
+.htx strong{color:#fbbf24;font-weight:700}
+
+/* ── DOCK top-center ── */
+#dock{top:14px;left:50%;transform:translateX(-50%);
+  padding:6px 12px;display:flex;align-items:center;gap:6px;z-index:12;white-space:nowrap}
+@media(max-width:1380px){#dock{top:80px;left:14px;transform:none}}
+.dsep{width:1px;height:22px;background:rgba(255,255,255,.14);margin:0 2px}
+.dlbl{font-size:9px;font-weight:800;color:#64748b;text-transform:uppercase;letter-spacing:.7px;margin-right:2px}
+.pl{display:flex;align-items:center;gap:5px;
+  background:rgba(15,23,42,.85);border:1px solid rgba(255,255,255,.12);
+  border-radius:20px;padding:5px 11px;
+  font-size:11px;font-weight:700;color:#94a3b8;cursor:pointer;transition:all .18s}
+.pl:hover{background:rgba(56,189,248,.18);border-color:#38bdf8;color:#fff;transform:translateY(-1px)}
+.pl.on{background:linear-gradient(135deg,#0284c7,#0369a1);border-color:#00e5ff;color:#fff;box-shadow:0 0 14px rgba(14,165,233,.6)}
+.pl.or{background:linear-gradient(135deg,#dc2626,#991b1b);border-color:#ef4444;color:#fff;box-shadow:0 0 14px rgba(220,38,38,.6)}
+.pl.oa{background:linear-gradient(135deg,#d97706,#78350f);border-color:#f59e0b;color:#fff;box-shadow:0 0 14px rgba(217,119,6,.6)}
+.pl.og{background:linear-gradient(135deg,#059669,#064e3b);border-color:#10b981;color:#fff;box-shadow:0 0 14px rgba(5,150,105,.6)}
+
+/* ── TELEMETRÍA top-right ── */
+#tel{top:14px;right:14px;width:260px;padding:14px 16px;display:flex;flex-direction:column;gap:8px}
+.thl{display:flex;justify-content:space-between;align-items:center;
+  padding-bottom:8px;border-bottom:1px solid rgba(255,255,255,.1)}
+.thl h3{font-size:11px;font-weight:800;color:#f1f5f9;text-transform:uppercase;letter-spacing:.5px}
+.stag{font-size:9px;font-weight:800;letter-spacing:.5px;padding:2px 8px;border-radius:4px;
+  background:rgba(56,189,248,.18);color:#38bdf8;text-transform:uppercase;border:1px solid rgba(56,189,248,.3)}
+.tr2{display:flex;align-items:center;justify-content:space-between;font-size:11.5px}
+.trl{display:flex;align-items:center;gap:7px;color:#cbd5e1}
+.tv{font-family:'JetBrains Mono',monospace;font-size:13.5px;font-weight:800}
+.tc{color:#00e5ff}.tre{color:#ff3b30}.tw{color:#f8fafc}
+.tdiv{height:1px;background:rgba(255,255,255,.08);margin:2px 0}
+.pue{font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:800;
+  padding:2px 8px;border-radius:4px;
+  background:rgba(16,185,129,.18);color:#10b981;border:1px solid rgba(16,185,129,.4)}
+.pue.d{background:rgba(239,68,68,.18);color:#ef4444;border-color:rgba(239,68,68,.4)}
+
+/* ── CONTROLES bottom-left ── */
+#ctl{bottom:14px;left:14px;padding:10px 16px;display:flex;align-items:center;gap:15px}
+.cb{background:transparent;border:none;cursor:pointer;
+  display:flex;flex-direction:column;align-items:center;gap:3px;
+  color:#94a3b8;font-size:10px;font-weight:700;transition:all .18s}
+.cb:hover{color:#00e5ff;transform:translateY(-1px)}
+.ci{width:32px;height:32px;border-radius:50%;
+  background:rgba(15,23,42,.92);border:1px solid rgba(255,255,255,.16);
+  display:flex;align-items:center;justify-content:center;font-size:13px;transition:all .18s}
+.cb:hover .ci{border-color:#00e5ff;box-shadow:0 0 12px rgba(0,229,255,.5);background:rgba(2,132,199,.2)}
+.tw2{display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer}
+.tgl{font-size:10px;font-weight:700;color:#94a3b8}
+.sw{position:relative;width:34px;height:18px;border-radius:10px;
+  background:#0284c7;transition:background .3s;box-shadow:inset 0 0 5px rgba(0,0,0,.5)}
+.sw.off{background:#1e293b}
+.sk{position:absolute;top:2px;left:18px;width:14px;height:14px;
+  border-radius:50%;background:#fff;transition:left .3s;box-shadow:0 1px 4px rgba(0,0,0,.5)}
+.sw.off .sk{left:2px}
+.sl{display:flex;flex-direction:column;gap:4px;width:92px}
+.slh{display:flex;justify-content:space-between;font-size:9.5px;font-weight:700;color:#64748b}
+.slt{position:relative;height:5px;background:rgba(255,255,255,.15);border-radius:3px;cursor:pointer}
+.slf{height:100%;width:100%;background:#00e5ff;border-radius:3px;
+  box-shadow:0 0 8px rgba(0,229,255,.6);position:relative;pointer-events:none}
+.sth{position:absolute;right:-4px;top:-3.5px;width:12px;height:12px;
+  border-radius:50%;background:#fff;box-shadow:0 1px 6px rgba(0,0,0,.6)}
+
+/* ── BOTÓN PUERTA bottom-center ── */
+#btnDoor{position:absolute;bottom:14px;left:50%;transform:translateX(-50%);
+  background:rgba(8,15,32,.92);border:1px solid rgba(245,158,11,.6);
+  border-radius:24px;padding:7px 16px;font-size:11px;font-weight:800;color:#f59e0b;
+  cursor:pointer;z-index:12;transition:all .2s;box-shadow:0 4px 20px rgba(0,0,0,.6)}
+#btnDoor:hover{background:rgba(245,158,11,.2);border-color:#f59e0b;box-shadow:0 0 16px rgba(245,158,11,.5);transform:translateX(-50%) translateY(-2px)}
+
+/* ── LEYENDA bottom-right ── */
+#leg{bottom:14px;right:14px;padding:11px 16px;display:flex;flex-direction:column;gap:8px}
+.lt{font-size:10px;font-weight:800;color:#64748b;text-transform:uppercase;letter-spacing:.6px;margin-bottom:2px}
+.lr{display:flex;align-items:center;gap:9px;font-size:11px;font-weight:600;color:#f8fafc}
+.dot{width:9px;height:9px;border-radius:50%;display:inline-block;flex-shrink:0}
+.dc{background:#00e5ff;box-shadow:0 0 10px #00e5ff}
+.dr{background:#ff3b30;box-shadow:0 0 10px #ff3b30}
+
+/* ── BADGES 3D ── */
+.bdg{position:absolute;transform:translate(-50%,-100%);
+  pointer-events:auto;cursor:pointer;z-index:15;
+  display:none;align-items:center;gap:5px;
+  padding:5px 12px;border-radius:7px;font-size:11.5px;font-weight:800;color:#fff;
+  white-space:nowrap;box-shadow:0 6px 24px rgba(0,0,0,.7);transition:all .2s}
+.bdg:hover{filter:brightness(1.25) saturate(1.3);transform:translate(-50%,-105%)}
+.bdg::after{content:'';position:absolute;bottom:-6px;left:50%;
+  transform:translateX(-50%);width:0;height:0;
+  border-left:6px solid transparent;border-right:6px solid transparent}
+.bc{background:rgba(15,23,42,.95);border:1px solid #38bdf8;box-shadow:0 0 16px rgba(56,189,248,.6);animation:fl 2.8s ease-in-out infinite}
+.bc::after{border-top:6px solid #38bdf8}
+.bf{background:rgba(2,132,199,.95);border:1px solid #38bdf8;box-shadow:0 0 16px rgba(2,132,199,.8);animation:fl 3s ease-in-out infinite .4s}
+.bf::after{border-top:6px solid #0284c7}
+.bh{background:rgba(220,38,38,.95);border:1px solid #f87171;box-shadow:0 0 16px rgba(220,38,38,.8);animation:fl 3.2s ease-in-out infinite .8s}
+.bh::after{border-top:6px solid #dc2626}
+.br{background:rgba(15,23,42,.95);border:1px solid #ef4444;box-shadow:0 0 16px rgba(239,68,68,.7);animation:fl 2.6s ease-in-out infinite 1.2s}
+.br::after{border-top:6px solid #ef4444}
+@keyframes fl{0%,100%{margin-top:0}50%{margin-top:-6px}}
+
+/* ── INSPECT MODAL ── */
+#ins{bottom:82px;left:14px;width:350px;padding:16px 18px;z-index:25;
+  display:none;animation:popIn .28s cubic-bezier(.16,1,.3,1)}
+@keyframes popIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+.ih{display:flex;justify-content:space-between;align-items:flex-start;
+  margin-bottom:10px;padding-bottom:8px;border-bottom:1px solid rgba(255,255,255,.12)}
+.it{font-size:13.5px;font-weight:800;color:#38bdf8}
+.is{font-size:10px;color:#94a3b8;margin-top:1px}
+.ix{background:transparent;border:none;color:#94a3b8;font-size:16px;cursor:pointer;
+  padding:2px 6px;border-radius:4px;line-height:1}
+.ix:hover{color:#fff;background:rgba(255,255,255,.14)}
+.ig{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px}
+.ii{background:rgba(15,23,42,.7);border:1px solid rgba(255,255,255,.09);
+  border-radius:8px;padding:7px 10px}
+.il{font-size:9px;color:#64748b;font-weight:700;text-transform:uppercase}
+.iv{font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:800;color:#f8fafc;margin-top:2px}
+.id{font-size:10.5px;line-height:1.55;color:#cbd5e1;
+  background:rgba(0,229,255,.06);border-left:3px solid #00e5ff;
+  padding:8px 10px;border-radius:0 8px 8px 0}
+
+/* ── TOAST NOTIFICATIONS ── */
+#toast{position:absolute;top:80px;left:50%;transform:translateX(-50%);
+  padding:8px 20px;border-radius:24px;font-size:12px;font-weight:800;color:#fff;
+  background:rgba(8,15,32,.96);border:1px solid #38bdf8;
+  box-shadow:0 10px 35px rgba(0,0,0,.8),0 0 24px rgba(56,189,248,.4);
+  z-index:40;display:none;pointer-events:none;animation:fadeIO 2.6s ease forwards}
+@keyframes fadeIO{0%{opacity:0;transform:translate(-50%,-8px)}12%{opacity:1;transform:translate(-50%,0)}80%{opacity:1}100%{opacity:0;transform:translate(-50%,-6px)}}
+
+/* Scenario top indicator line */
+#sbar{position:absolute;top:0;left:0;right:0;height:3px;z-index:30;
+  background:linear-gradient(90deg,#00e5ff,#0284c7,#00e5ff);
+  background-size:200% 100%;animation:shimmer 3s linear infinite}
+@keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
+#sbar.red{background:linear-gradient(90deg,#ff3b30,#dc2626,#ff3b30);background-size:200% 100%}
+#sbar.amber{background:linear-gradient(90deg,#f59e0b,#d97706,#f59e0b);background-size:200% 100%}
+#sbar.green{background:linear-gradient(90deg,#10b981,#059669,#10b981);background-size:200% 100%}
+</style>
+</head>
+<body>
+<div id="sbar"></div>
+<canvas id="cv"></canvas>
+<div id="toast"></div>
+
+<!-- HEADER -->
+<div id="hdr" class="gc">
+  <div class="hicn"><div class="rl"></div><div class="rl"></div><div class="rl"></div></div>
+  <div class="htx">
+    <h1>Data Center — Aire Acondicionado</h1>
+    <p>Simulación 3D de flujo de aire y climatización</p>
+    <small>IESTP Hermanos Cárcamo · <strong>Gerson Misael Pintado Huaman</strong> · Ing. Javier Eduardo Jaramillo Atoche</small>
+  </div>
+</div>
+
+<!-- DOCK -->
+<div id="dock" class="gc">
+  <span class="dlbl">Escenario</span>
+  <button class="pl on" id="pN" onclick="setScene('n')">🟢 Normal N+1</button>
+  <button class="pl"    id="pF" onclick="setScene('f')">🔴 Falla CRAC</button>
+  <button class="pl"    id="pB" onclick="setScene('b')">⚠️ Bypass</button>
+  <button class="pl"    id="pC" onclick="setScene('c')">❄️ Free Cooling</button>
+  <div class="dsep"></div>
+  <span class="dlbl">Vista</span>
+  <button class="pl on" id="vRe" onclick="setView('r')">👁 Realista HD</button>
+  <button class="pl"    id="vFl" onclick="setView('f')">🌡 FLIR</button>
+  <button class="pl"    id="vXr" onclick="setView('x')">🦴 Rayos X 3D</button>
+  <div class="dsep"></div>
+  <button class="pl" onclick="captura()">📸 Captura HD</button>
+  <button class="pl" id="pAud" onclick="tAudio()">🔇 Audio</button>
+</div>
+
+<!-- TELEMETRÍA -->
+<div id="tel" class="gc">
+  <div class="thl">
+    <h3>Temperaturas (°C)</h3>
+    <span class="stag" id="stag">NORMAL N+1</span>
+  </div>
+  <div class="tr2"><span class="trl"><span style="color:#00e5ff;font-size:15px">🌡</span>Impulsión CRAC</span><span class="tv tc" id="vI">18.0</span></div>
+  <div class="tr2"><span class="trl"><span style="color:#ff3b30;font-size:15px">🌡</span>Retorno caliente</span><span class="tv tre" id="vR">31.5</span></div>
+  <div class="tr2"><span class="trl"><span style="color:#38bdf8;font-size:15px">🌡</span>Temperatura de sala</span><span class="tv tw" id="vS">24.2</span></div>
+  <div class="tr2"><span class="trl"><span style="color:#38bdf8;font-size:15px">🌀</span>Velocidad del aire</span><span class="tv tw" id="vV">1.8 m/s</span></div>
+  <div class="tdiv"></div>
+  <div class="tr2"><span class="trl"><span style="font-size:13px">⚡</span><span style="font-size:10.5px;color:#94a3b8">Eficiencia PUE</span></span><span class="pue" id="vP">1.35 · Óptimo</span></div>
+  <div class="tr2"><span class="trl"><span style="font-size:13px">💧</span><span style="font-size:10.5px;color:#94a3b8">Humedad relativa</span></span><span class="tv tw" style="font-size:11px" id="vH">48 % HR</span></div>
+</div>
+
+<!-- CONTROLES -->
+<div id="ctl" class="gc">
+  <button class="cb" id="bPause" onclick="tPause()"><div class="ci" id="pico">⏸</div><span id="ptx">Pausar</span></button>
+  <button class="cb" onclick="resetCam()"><div class="ci">🔄</div><span>Reiniciar vista</span></button>
+  <div class="tw2" onclick="tFlow()"><div class="sw" id="swF"><div class="sk"></div></div><div class="tgl">Mostrar flujo</div></div>
+  <div class="sl">
+    <div class="slh"><span>Velocidad</span><span id="sTx">100%</span></div>
+    <div class="slt" onclick="sSpeed(event)"><div class="slf" id="sF"><div class="sth"></div></div></div>
+  </div>
+  <div class="sl">
+    <div class="slh"><span>Densidad</span><span id="dTx">100%</span></div>
+    <div class="slt" onclick="sDens(event)"><div class="slf" id="dF"><div class="sth"></div></div></div>
+  </div>
+</div>
+
+<!-- BOTÓN PUERTA -->
+<button id="btnDoor" onclick="toggleDoor()">🚪 Abrir / Cerrar Puerta</button>
+
+<!-- LEYENDA -->
+<div id="leg" class="gc">
+  <div class="lt">Leyenda de flujo de aire</div>
+  <div class="lr"><span class="dot dc"></span>Aire frío (impulsión) — 18 °C</div>
+  <div class="lr"><span class="dot dr"></span>Aire caliente (retorno) — 31.5 °C</div>
+</div>
+
+<!-- BADGES 3D -->
+<div class="bdg bc" id="bCrac" onclick="showIns('crac')">CRAC</div>
+<div class="bdg bf" id="bCold" onclick="showIns('cold')">Pasillo Frío</div>
+<div class="bdg bh" id="bHot"  onclick="showIns('hot')">Pasillo Caliente</div>
+<div class="bdg br" id="bRet"  onclick="showIns('ret')">Retorno de aire caliente</div>
+
+<!-- INSPECT MODAL -->
+<div id="ins" class="gc">
+  <div class="ih">
+    <div><div class="it" id="insT">CRAC</div><div class="is" id="insS">Subsistema HVAC</div></div>
+    <button class="ix" onclick="closeIns()">✕</button>
+  </div>
+  <div class="ig">
+    <div class="ii"><div class="il">Capacidad</div><div class="iv" id="iV1">60 kW</div></div>
+    <div class="ii"><div class="il">Caudal</div><div class="iv" id="iV2">8500 CFM</div></div>
+    <div class="ii"><div class="il">Ventiladores</div><div class="iv" id="iV3">EC 78%</div></div>
+    <div class="ii"><div class="il">Delta-T</div><div class="iv" id="iV4">13.5 °C</div></div>
+  </div>
+  <div class="id" id="insD">Descripción del componente seleccionado.</div>
+</div>
+
+<script>
+/* ════════════════════════════════════════════════════════════
+   THREE.JS 3D DATA CENTER SIMULATOR
+   IESTP Hermanos Cárcamo — Gerson Misael Pintado Huaman
+   Docente: Ing. Javier Eduardo Jaramillo Atoche
+════════════════════════════════════════════════════════════ */
+let scene, cam, rnd, orb;
+let paused=false, flowing=true, speedF=1.0, doorOpen=false;
+let scenario='n', curView='r';
+let audioCtx, masterG, fanSrc, oscComp, alarmO, audioOn=false;
+let rc=new THREE.Raycaster(), mouse=new THREE.Vector2();
+
+/* Pools & References */
+let coldRibbons=[], hotRibbons=[], coldArrows=[], hotArrows=[], ductArrows=[];
+let ptsCold, ptsHot, velCold=[], velHot=[];
+let doorMesh, doorGroup;
+let cracMesh, cracScreenMesh, cracScreenTex;
+let rackLEDs=[], internalComps=[];
+let savedMats=new Map();
+let lights={ambient:null, sun:null, cold:null, hot1:null, hot2:null, duct:null, crac:null};
+let floorTilesGroup;
+
+/* Badge positions in 3D world */
+const BPOS={
+  crac: new THREE.Vector3(-4.8, 3.4, 0.4),
+  cold: new THREE.Vector3( 0.5, 2.7, 0.2),
+  hot:  new THREE.Vector3( 3.1, 2.9, -0.6),
+  ret:  new THREE.Vector3( 0.5, 4.8, -6.4)
+};
+
+window.addEventListener('DOMContentLoaded', init);
+
+/* ──────────────────────────────────────────────────
+   PROCEDURAL TEXTURE GENERATORS (Canvas 2D)
+────────────────────────────────────────────────── */
+function makePerforatedTex(){
+  const cv=document.createElement('canvas'); cv.width=256; cv.height=256;
+  const ctx=cv.getContext('2d');
+  ctx.fillStyle='#94a3b8'; ctx.fillRect(0,0,256,256);
+  ctx.strokeStyle='#475569'; ctx.lineWidth=6; ctx.strokeRect(3,3,250,250);
+  ctx.fillStyle='#090d16';
+  for(let x=22; x<240; x+=26){
+    for(let y=22; y<240; y+=26){
+      ctx.beginPath(); ctx.arc(x,y,6.5,0,Math.PI*2); ctx.fill();
+    }
+  }
+  const tex=new THREE.CanvasTexture(cv);
+  tex.wrapS=tex.wrapT=THREE.RepeatWrapping;
+  return tex;
+}
+
+function makeFloorTex(){
+  const cv=document.createElement('canvas'); cv.width=256; cv.height=256;
+  const ctx=cv.getContext('2d');
+  ctx.fillStyle='#c8d0d8'; ctx.fillRect(0,0,256,256);
+  for(let i=0;i<400;i++){
+    const v=Math.floor(Math.random()*16);
+    ctx.fillStyle=`rgba(${190+v},${200+v},${210+v},0.4)`;
+    ctx.fillRect(Math.random()*256,Math.random()*256,3,3);
+  }
+  ctx.strokeStyle='#8a99a8'; ctx.lineWidth=4; ctx.strokeRect(2,2,252,252);
+  const tex=new THREE.CanvasTexture(cv);
+  tex.wrapS=tex.wrapT=THREE.RepeatWrapping;
+  return tex;
+}
+
+function makeRackFrontTex(){
+  const cv=document.createElement('canvas'); cv.width=256; cv.height=512;
+  const ctx=cv.getContext('2d');
+  ctx.fillStyle='#0a0e17'; ctx.fillRect(0,0,256,512);
+  ctx.fillStyle='#1e293b'; ctx.fillRect(0,0,18,512); ctx.fillRect(238,0,18,512);
+  const uH=48;
+  for(let u=0; u<10; u++){
+    const y=14+u*uH;
+    ctx.fillStyle='#162032'; ctx.fillRect(22,y,212,uH-6);
+    ctx.strokeStyle='#334155'; ctx.lineWidth=1.5; ctx.strokeRect(22,y,212,uH-6);
+    for(let d=0; d<6; d++){
+      ctx.fillStyle='#0f172a'; ctx.fillRect(30+d*23,y+8,19,uH-22);
+      ctx.strokeStyle='#475569'; ctx.strokeRect(30+d*23,y+8,19,uH-22);
+    }
+    ctx.fillStyle='#050811'; ctx.fillRect(174,y+8,52,uH-22);
+    ctx.fillStyle='#00e5ff'; ctx.beginPath(); ctx.arc(180,y+14,3,0,Math.PI*2); ctx.fill();
+    ctx.fillStyle='#10b981'; ctx.beginPath(); ctx.arc(192,y+14,3,0,Math.PI*2); ctx.fill();
+  }
+  return new THREE.CanvasTexture(cv);
+}
+
+function makeCracScreenTex(temp='18.0', status='NORMAL N+1'){
+  const cv=document.createElement('canvas'); cv.width=512; cv.height=256;
+  const ctx=cv.getContext('2d');
+  ctx.fillStyle='#020b18'; ctx.fillRect(0,0,512,256);
+  ctx.strokeStyle='#0284c7'; ctx.lineWidth=6; ctx.strokeRect(6,6,500,244);
+  ctx.fillStyle='#0284c7'; ctx.fillRect(10,10,492,44);
+  ctx.fillStyle='#ffffff'; ctx.font='bold 22px "JetBrains Mono", monospace';
+  ctx.fillText('LIEBERT CRAC 01 · DX INVERTER', 24, 40);
+  ctx.fillStyle='#00e5ff'; ctx.font='bold 68px "JetBrains Mono", monospace';
+  ctx.fillText(temp+' °C', 26, 134);
+  ctx.fillStyle='#94a3b8'; ctx.font='bold 17px "Inter", sans-serif';
+  ctx.fillText('IMPULSIÓN PISO TÉCNICO', 28, 166);
+  ctx.fillStyle='#e2e8f0'; ctx.font='bold 19px "JetBrains Mono", monospace';
+  ctx.fillText('RETORNO: 31.5 °C', 270, 98);
+  ctx.fillText('VENTILADOR: 78 %', 270, 132);
+  ctx.fillText('CAUDAL: 8500 CFM', 270, 166);
+  ctx.fillStyle=status.includes('FALLA')?'#ef4444':'#10b981';
+  ctx.fillRect(24,196,464,38);
+  ctx.fillStyle='#ffffff'; ctx.font='bold 18px "Inter", sans-serif';
+  ctx.fillText('● ESTADO: '+status, 42, 222);
+  return new THREE.CanvasTexture(cv);
+}
+
+function makeExitTex(){
+  const cv=document.createElement('canvas'); cv.width=128; cv.height=64;
+  const ctx=cv.getContext('2d');
+  ctx.fillStyle='#15803d'; ctx.fillRect(0,0,128,64);
+  ctx.strokeStyle='#ffffff'; ctx.lineWidth=3; ctx.strokeRect(4,4,120,56);
+  ctx.fillStyle='#ffffff'; ctx.font='bold 18px "Inter", sans-serif';
+  ctx.fillText('SALIDA', 28, 38);
+  return new THREE.CanvasTexture(cv);
+}
+
+/* ──────────────────────────────────────────────────
+   INITIALIZATION
+────────────────────────────────────────────────── */
+function init(){
+  const cv=document.getElementById('cv');
+  scene=new THREE.Scene();
+  scene.background=new THREE.Color(0x060c18);
+  scene.fog=new THREE.FogExp2(0x060c18, 0.012);
+
+  cam=new THREE.PerspectiveCamera(36, innerWidth/innerHeight, 0.1, 150);
+  /* Centered, balanced, panoramic isometric camera */
+  cam.position.set(13.2, 10.2, 12.8);
+
+  rnd=new THREE.WebGLRenderer({canvas:cv, antialias:true, powerPreference:'high-performance', preserveDrawingBuffer:true});
+  rnd.setPixelRatio(Math.min(devicePixelRatio, 2.0));
+  rnd.setSize(innerWidth, innerHeight);
+  rnd.shadowMap.enabled=true;
+  rnd.shadowMap.type=THREE.PCFSoftShadowMap;
+  rnd.toneMapping=THREE.ACESFilmicToneMapping;
+  rnd.toneMappingExposure=1.15;
+
+  orb=new THREE.OrbitControls(cam, rnd.domElement);
+  orb.enableDamping=true; orb.dampingFactor=0.05;
+  orb.maxPolarAngle=Math.PI/2 - 0.02;
+  orb.minDistance=4; orb.maxDistance=40;
+  /* Centered target */
+  orb.target.set(0.3, 1.4, -0.9);
+
+  buildLights();
+  buildRoom();
+  buildCRAC();
+  buildRacks();
+  buildDucts();
+  buildAirflow();
+
+  window.addEventListener('resize', onResize);
+
+  /* Precise click vs drag handler */
+  let downPos={x:0, y:0};
+  cv.addEventListener('pointerdown', e => { downPos={x:e.clientX, y:e.clientY}; });
+  cv.addEventListener('pointerup', e => {
+    if(Math.hypot(e.clientX-downPos.x, e.clientY-downPos.y) > 6) return;
+    onClick(e);
+  });
+
+  requestAnimationFrame(loop);
+}
+
+/* ──────────────────────────────────────────────────
+   LIGHTING
+────────────────────────────────────────────────── */
+function buildLights(){
+  lights.ambient=new THREE.AmbientLight(0xd4e2f0, 1.3);
+  scene.add(lights.ambient);
+
+  lights.sun=new THREE.DirectionalLight(0xffffff, 2.4);
+  lights.sun.position.set(14, 22, 16);
+  lights.sun.castShadow=true;
+  lights.sun.shadow.mapSize.set(2048, 2048);
+  lights.sun.shadow.camera.left=-16; lights.sun.shadow.camera.right=16;
+  lights.sun.shadow.camera.top=16;  lights.sun.shadow.camera.bottom=-16;
+  lights.sun.shadow.bias=-0.0003;
+  scene.add(lights.sun);
+
+  const fill=new THREE.DirectionalLight(0x93c5fd, 0.9);
+  fill.position.set(-12, 10, 4);
+  scene.add(fill);
+
+  lights.cold=new THREE.PointLight(0x00e5ff, 8.5, 16);
+  lights.cold.position.set(0.5, 1.2, -0.8);
+  scene.add(lights.cold);
+
+  lights.hot1=new THREE.PointLight(0xff3b30, 5.5, 12);
+  lights.hot1.position.set(-1.9, 2.4, -1.0);
+  scene.add(lights.hot1);
+
+  lights.hot2=new THREE.PointLight(0xff3b30, 5.5, 12);
+  lights.hot2.position.set(3.1, 2.4, -1.0);
+  scene.add(lights.hot2);
+
+  lights.duct=new THREE.PointLight(0xff2600, 6.0, 16);
+  lights.duct.position.set(0.5, 4.4, -6.4);
+  scene.add(lights.duct);
+
+  lights.crac=new THREE.PointLight(0x00a0ff, 5.5, 10);
+  lights.crac.position.set(-4.8, 2.0, 0.4);
+  scene.add(lights.crac);
+}
+
+/* ──────────────────────────────────────────────────
+   ROOM ARCHITECTURE (Isometric Open Cutaway)
+────────────────────────────────────────────────── */
+function buildRoom(){
+  /* Subfloor concrete base (y = -0.6) */
+  const subMat=new THREE.MeshStandardMaterial({color:0x111927, roughness:0.9, metalness:0.2});
+  const sub=new THREE.Mesh(new THREE.BoxGeometry(17.5, 0.1, 14.5), subMat);
+  sub.position.set(0.5, -0.65, -1.2);
+  sub.receiveShadow=true; scene.add(sub);
+
+  /* Subfloor metallic pedestals/stanchions */
+  const pedGeo=new THREE.CylinderGeometry(0.04, 0.04, 0.6, 8);
+  const pedMat=new THREE.MeshStandardMaterial({color:0x94a3b8, metalness:0.9, roughness:0.2});
+  const baseGeo=new THREE.BoxGeometry(0.18, 0.02, 0.18);
+  for(let x=-6.8; x<=7.6; x+=1.6){
+    for(let z=-6.4; z<=4.0; z+=1.6){
+      const p=new THREE.Mesh(pedGeo, pedMat); p.position.set(x, -0.35, z); scene.add(p);
+      const b=new THREE.Mesh(baseGeo, pedMat); b.position.set(x, -0.64, z); scene.add(b);
+    }
+  }
+
+  /* Raised floor solid tiles (y = 0.0) */
+  floorTilesGroup=new THREE.Group();
+  const fTex=makeFloorTex(); fTex.repeat.set(8, 7);
+  const fMat=new THREE.MeshStandardMaterial({color:0xd4dce4, map:fTex, roughness:0.25, metalness:0.2});
+
+  /* Left floor section (left of cold aisle) */
+  const flLeft=new THREE.Mesh(new THREE.BoxGeometry(7.0, 0.08, 12.8), fMat);
+  flLeft.position.set(-3.7, -0.04, -1.2); flLeft.receiveShadow=true; floorTilesGroup.add(flLeft);
+
+  /* Right floor section (right of cold aisle) */
+  const flRight=new THREE.Mesh(new THREE.BoxGeometry(6.6, 0.08, 12.8), fMat);
+  flRight.position.set(4.5, -0.04, -1.2); flRight.receiveShadow=true; floorTilesGroup.add(flRight);
+
+  /* North/South floor borders */
+  const flNorth=new THREE.Mesh(new THREE.BoxGeometry(1.6, 0.08, 2.0), fMat);
+  flNorth.position.set(0.5, -0.04, -6.6); flNorth.receiveShadow=true; floorTilesGroup.add(flNorth);
+  const flSouth=new THREE.Mesh(new THREE.BoxGeometry(1.6, 0.08, 1.6), fMat);
+  flSouth.position.set(0.5, -0.04, 4.4); flSouth.receiveShadow=true; floorTilesGroup.add(flSouth);
+
+  scene.add(floorTilesGroup);
+
+  /* PERFORATED GRILLE TILES in Cold Aisle (x = 0.5, z = -4.0 to 2.8) */
+  const pTex=makePerforatedTex();
+  const perfMat=new THREE.MeshStandardMaterial({
+    color:0x00e5ff, map:pTex, emissive:0x0077aa, emissiveIntensity:0.6,
+    roughness:0.2, metalness:0.8
+  });
+  for(let z=-4.0; z<=2.8; z+=0.75){
+    const tile=new THREE.Mesh(new THREE.BoxGeometry(1.5, 0.09, 0.65), perfMat);
+    tile.position.set(0.5, -0.035, z);
+    tile.receiveShadow=true;
+    tile.userData.isCold=1;
+    scene.add(tile);
+  }
+
+  /* Back Wall (North) — Cleanroom Off-White */
+  const wallMat=new THREE.MeshStandardMaterial({color:0xe5ebf2, roughness:0.7, metalness:0.08});
+  const backWall=new THREE.Mesh(new THREE.BoxGeometry(17.5, 5.0, 0.35), wallMat);
+  backWall.position.set(0.5, 1.9, -7.5);
+  backWall.castShadow=true; backWall.receiveShadow=true;
+  scene.add(backWall);
+
+  /* Right Wall (East) — with Door */
+  const rightWall=new THREE.Mesh(new THREE.BoxGeometry(0.35, 5.0, 14.5), wallMat);
+  rightWall.position.set(9.1, 1.9, -1.2);
+  rightWall.castShadow=true; rightWall.receiveShadow=true;
+  scene.add(rightWall);
+
+  /* Wall baseboards */
+  const bbMat=new THREE.MeshStandardMaterial({color:0x64748b, metalness:0.5});
+  const bb1=new THREE.Mesh(new THREE.BoxGeometry(17.5, 0.15, 0.08), bbMat);
+  bb1.position.set(0.5, 0.075, -7.3); scene.add(bb1);
+  const bb2=new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.15, 14.5), bbMat);
+  bb2.position.set(8.9, 0.075, -1.2); scene.add(bb2);
+
+  /* Door Assembly */
+  doorGroup=new THREE.Group();
+  doorGroup.position.set(8.9, 0, 1.8);
+
+  const dfMat=new THREE.MeshStandardMaterial({color:0x475569, metalness:0.7, roughness:0.3});
+  const dFrame=new THREE.Mesh(new THREE.BoxGeometry(0.36, 2.8, 1.6), dfMat);
+  dFrame.position.set(0, 1.4, 0); doorGroup.add(dFrame);
+
+  const dlMat=new THREE.MeshStandardMaterial({color:0x94a3b8, metalness:0.5, roughness:0.35});
+  doorMesh=new THREE.Mesh(new THREE.BoxGeometry(0.38, 2.6, 1.35), dlMat);
+  doorMesh.position.set(0, 1.4, -0.67);
+  doorMesh.userData.isDoor=1;
+  doorGroup.add(doorMesh);
+
+  /* Door handle */
+  const dh=new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.02, 0.28, 8),
+    new THREE.MeshStandardMaterial({color:0xf1f5f9, metalness:0.95}));
+  dh.rotation.x=Math.PI/2;
+  dh.position.set(-0.22, 1.4, -0.2); dh.userData.isDoor=1;
+  doorGroup.add(dh);
+
+  scene.add(doorGroup);
+
+  /* Exit sign above door */
+  const exTex=makeExitTex();
+  const exMesh=new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.24, 0.48),
+    new THREE.MeshBasicMaterial({map:exTex}));
+  exMesh.position.set(8.7, 3.0, 1.8); scene.add(exMesh);
+
+  /* Red Fire Extinguisher */
+  const ext=new THREE.Mesh(new THREE.CylinderGeometry(0.09, 0.09, 0.55, 12),
+    new THREE.MeshStandardMaterial({color:0xdc2626, metalness:0.8, roughness:0.2}));
+  ext.position.set(8.7, 0.35, 3.4); scene.add(ext);
+}
+
+/* ──────────────────────────────────────────────────
+   CRAC UNIT (Angled Towards Camera, High Detail)
+────────────────────────────────────────────────── */
+function buildCRAC(){
+  const cracGroup=new THREE.Group();
+  /* Placed on left side, front-facing towards camera */
+  cracGroup.position.set(-4.8, 0, 0.4);
+  cracGroup.rotation.y = 0.35; // Angled 20 degrees towards camera for perfect visibility!
+
+  /* Main metallic cabinet */
+  const bodyMat=new THREE.MeshStandardMaterial({color:0xd8dcdf, roughness:0.3, metalness:0.6});
+  cracMesh=new THREE.Mesh(new THREE.BoxGeometry(2.1, 3.4, 1.6), bodyMat);
+  cracMesh.position.y=1.7;
+  cracMesh.castShadow=true; cracMesh.receiveShadow=true;
+  cracMesh.userData.isCrac=1;
+  cracGroup.add(cracMesh);
+
+  /* Louver intake grilles on front (+Z face) */
+  const lmMat=new THREE.MeshStandardMaterial({color:0x1e293b, metalness:0.85, roughness:0.3});
+  const topGrille=new THREE.Mesh(new THREE.BoxGeometry(1.7, 0.95, 0.08), lmMat);
+  topGrille.position.set(0, 2.7, 0.82); topGrille.userData.isCrac=1; cracGroup.add(topGrille);
+  const btmGrille=new THREE.Mesh(new THREE.BoxGeometry(1.7, 0.85, 0.08), lmMat);
+  btmGrille.position.set(0, 0.7, 0.82); btmGrille.userData.isCrac=1; cracGroup.add(btmGrille);
+
+  /* Digital Touchscreen Display on front (+Z face) */
+  cracScreenTex=makeCracScreenTex('18.0', 'NORMAL N+1');
+  const scrMat=new THREE.MeshBasicMaterial({map:cracScreenTex});
+  cracScreenMesh=new THREE.Mesh(new THREE.BoxGeometry(0.65, 0.48, 0.06), scrMat);
+  cracScreenMesh.position.set(0, 1.7, 0.82); cracScreenMesh.userData.isCrac=1;
+  cracGroup.add(cracScreenMesh);
+
+  /* Top duct connection collar */
+  const col=new THREE.Mesh(new THREE.BoxGeometry(1.5, 0.6, 1.3),
+    new THREE.MeshStandardMaterial({color:0x94a3b8, metalness:0.8}));
+  col.position.set(0, 3.7, 0); col.userData.isCrac=1; cracGroup.add(col);
+
+  /* Internal components for X-Ray mode */
+  const coil=new THREE.Mesh(new THREE.BoxGeometry(1.5, 1.6, 0.2),
+    new THREE.MeshStandardMaterial({color:0x00d4ff, metalness:0.9, roughness:0.2}));
+  coil.position.set(0, 2.0, 0); coil.userData.internal=1; cracGroup.add(coil); internalComps.push(coil);
+
+  for(let f=-0.45; f<=0.45; f+=0.9){
+    const fan=new THREE.Mesh(new THREE.CylinderGeometry(0.32, 0.32, 0.35, 16),
+      new THREE.MeshStandardMaterial({color:0x64748b, metalness:0.9}));
+    fan.rotation.x=Math.PI/2; fan.position.set(f, 0.75, 0);
+    fan.userData.internal=1; cracGroup.add(fan); internalComps.push(fan);
+  }
+
+  scene.add(cracGroup);
+}
+
+/* ──────────────────────────────────────────────────
+   SERVER RACKS (Modular 42U Cabinets + Blinking LEDs)
+────────────────────────────────────────────────── */
+function buildRacks(){
+  const fMat=new THREE.MeshStandardMaterial({color:0x0d121c, roughness:0.35, metalness:0.85});
+  const rackTex=makeRackFrontTex();
+  const frontMat=new THREE.MeshStandardMaterial({map:rackTex, roughness:0.3, metalness:0.7});
+  const ledCols=[0x00e5ff, 0x10b981, 0x38bdf8, 0x00ff80, 0x00e5ff, 0x34d399];
+
+  /* 4 Rows configuration:
+     Row A: Left (x = -2.8)
+     Row B: Left side of Cold Aisle (x = -0.7, faces +X)
+     Row C: Right side of Cold Aisle (x = +1.7, faces -X)
+     Row D: Outer Right (x = +4.2, faces -X) */
+  const rows=[
+    {x:-2.8, rot:0,       z:[-3.4, -2.1, -0.8]},
+    {x:-0.7, rot:0,       z:[-3.8, -2.5, -1.2, 0.1, 1.4, 2.7]},
+    {x: 1.7, rot:Math.PI, z:[-3.8, -2.5, -1.2, 0.1, 1.4, 2.7]},
+    {x: 4.2, rot:Math.PI, z:[-3.8, -2.5, -1.2, 0.1, 1.4, 2.7]}
+  ];
+
+  rows.forEach(r=>{
+    r.z.forEach(pz=>{
+      const rg=new THREE.Group();
+      rg.position.set(r.x, 0, pz);
+      rg.rotation.y=r.rot;
+
+      /* Main 42U Cabinet Frame */
+      const cab=new THREE.Mesh(new THREE.BoxGeometry(0.88, 2.4, 1.05), fMat);
+      cab.position.y=1.2; cab.castShadow=true; cab.receiveShadow=true;
+      cab.userData.isRack=1; rg.add(cab);
+
+      /* Front Server Face with texture */
+      const face=new THREE.Mesh(new THREE.PlaneGeometry(0.82, 2.25), frontMat);
+      face.position.set(0.445, 1.2, 0); face.rotation.y=Math.PI/2;
+      face.userData.isRack=1; rg.add(face);
+
+      /* Blinking LED Array */
+      for(let u=0; u<7; u++){
+        const lm=new THREE.MeshBasicMaterial({color:ledCols[u%ledCols.length]});
+        const led=new THREE.Mesh(new THREE.BoxGeometry(0.02, 0.03, 0.04), lm);
+        led.position.set(0.45, 0.35+u*0.28, 0.28);
+        rg.add(led);
+        rackLEDs.push({m:led, ph:Math.random()*Math.PI*2, fr:0.8+Math.random()*2.5});
+      }
+
+      /* Internal server chassis for X-Ray mode */
+      for(let u=0; u<5; u++){
+        const blade=new THREE.Mesh(new THREE.BoxGeometry(0.78, 0.18, 0.95),
+          new THREE.MeshStandardMaterial({color:0x1e293b, metalness:0.9, roughness:0.2}));
+        blade.position.set(0, 0.4+u*0.42, 0);
+        blade.userData.internal=1; rg.add(blade); internalComps.push(blade);
+      }
+
+      scene.add(rg);
+    });
+  });
+}
+
+/* ──────────────────────────────────────────────────
+   DUCTS (Overhead Return HVAC Ductwork)
+────────────────────────────────────────────────── */
+function buildDucts(){
+  const dMat=new THREE.MeshStandardMaterial({color:0xa0abb8, roughness:0.28, metalness:0.82});
+
+  /* Main Back Wall Duct */
+  const dBack=new THREE.Mesh(new THREE.BoxGeometry(13.2, 0.8, 1.1), dMat);
+  dBack.position.set(0.6, 4.2, -6.4);
+  dBack.castShadow=true; dBack.receiveShadow=true;
+  dBack.userData.isDuct=1; scene.add(dBack);
+
+  /* Right Wall Return Duct */
+  const dRight=new THREE.Mesh(new THREE.BoxGeometry(1.1, 0.8, 8.4), dMat);
+  dRight.position.set(6.8, 4.2, -2.6);
+  dRight.castShadow=true; dRight.receiveShadow=true;
+  dRight.userData.isDuct=1; scene.add(dRight);
+
+  /* Connection Elbow to CRAC Top */
+  const dCrac=new THREE.Mesh(new THREE.BoxGeometry(1.4, 0.8, 6.2), dMat);
+  dCrac.position.set(-4.8, 4.2, -3.2);
+  dCrac.userData.isDuct=1; scene.add(dCrac);
+
+  /* Intake Return Grilles with glowing red heat receivers */
+  const gMat=new THREE.MeshBasicMaterial({color:0xff2600, transparent:true, opacity:0.8});
+  [-1.8, 3.0].forEach(gx=>{
+    const g=new THREE.Mesh(new THREE.BoxGeometry(1.4, 0.1, 0.8), gMat);
+    g.position.set(gx, 3.75, -6.4); scene.add(g);
+  });
+}
+
+/* ──────────────────────────────────────────────────
+   AIRFLOW (Curved Sweeping Tubes, Arrows & CFD Particles)
+────────────────────────────────────────────────── */
+function mkTube(pts, r, col, op=0.88){
+  const curve=new THREE.CatmullRomCurve3(pts.map(p=>new THREE.Vector3(...p)));
+  const geo=new THREE.TubeGeometry(curve, 60, r, 10, false);
+  const mat=new THREE.MeshBasicMaterial({
+    color:col, transparent:true, opacity:op, blending:THREE.AdditiveBlending, depthWrite:false
+  });
+  const m=new THREE.Mesh(geo, mat); scene.add(m); return m;
+}
+
+function mkArrow(color, vert=true){
+  const g=new THREE.Group();
+  const m=new THREE.MeshBasicMaterial({color:color, transparent:true, opacity:0.95});
+  const s=new THREE.Mesh(new THREE.CylinderGeometry(0.026, 0.026, 0.38, 10), m);
+  s.position.y=0.19; g.add(s);
+  const h=new THREE.Mesh(new THREE.ConeGeometry(0.10, 0.26, 12), m);
+  h.position.y=0.38+0.13; g.add(h);
+  if(!vert) g.rotation.z=Math.PI/2;
+  return g;
+}
+
+function buildAirflow(){
+  /* ══ BLUE COLD RIBBONS (Sweeping from CRAC through floor plenum into cold aisle) ══ */
+  const bluePaths=[
+    [[-4.0,-0.3, 0.5],[-2.8,-0.38,-1.2],[-1.4,-0.38,-2.4],[0.5,-0.2,-2.6],[0.5,0.4,-2.6],[0.5,1.9,-2.6]],
+    [[-4.0,-0.3, 0.5],[-2.5,-0.38,-0.6],[-1.0,-0.38,-1.4],[0.5,-0.2,-1.4],[0.5,0.4,-1.4],[0.5,2.1,-1.4]],
+    [[-4.0,-0.3, 0.5],[-2.5,-0.38, 0.0],[-0.8,-0.38, 0.0],[0.5,-0.2, 0.0],[0.5,0.4, 0.0],[0.5,2.3, 0.0]],
+    [[-4.0,-0.3, 0.5],[-2.5,-0.38, 0.8],[-0.8,-0.38, 1.2],[0.5,-0.2, 1.4],[0.5,0.4, 1.4],[0.5,2.1, 1.4]],
+    [[-4.0,-0.3, 0.5],[-2.8,-0.38, 1.6],[-1.2,-0.38, 2.2],[0.5,-0.2, 2.5],[0.5,0.4, 2.5],[0.5,1.9, 2.5]],
+    /* Secondary accent streamlines */
+    [[-4.0,-0.3, 0.5],[-2.2,-0.35,-0.5],[0.0,-0.35,-0.5],[0.5,0.2,-0.5],[0.5,1.6,-0.5]],
+    [[-4.0,-0.3, 0.5],[-2.2,-0.35, 0.5],[0.0,-0.35, 0.5],[0.5,0.2, 0.5],[0.5,1.7, 0.5]]
+  ];
+
+  bluePaths.forEach((pts, i)=>{
+    const r=i<5?0.095:0.055;
+    coldRibbons.push(mkTube(pts, r, 0x00e5ff, i<5?0.88:0.65));
+  });
+
+  /* Cold laminar upward arrows in Cold Aisle */
+  for(let az=-3.6; az<=2.6; az+=0.75){
+    const arr=mkArrow(0x00e5ff, true);
+    arr.position.set(0.5, 0.3+Math.random()*0.8, az);
+    scene.add(arr);
+    coldArrows.push({mesh:arr, base:0.1, top:2.7, spd:0.026});
+  }
+
+  /* ══ RED HOT RIBBONS (Rising from hot aisles into overhead ducts) ══ */
+  /* Hot Aisle 1 (x = -1.8) */
+  for(let hz=-3.2; hz<=1.6; hz+=1.4){
+    hotRibbons.push(mkTube([
+      [-1.8, 1.2, hz], [-1.8, 2.5, hz-0.3], [-2.0, 3.5, hz-0.7], [-1.8, 4.0, -6.2]
+    ], 0.08, 0xff2600, 0.8));
+  }
+  /* Hot Aisle 2 (x = 3.0) */
+  for(let hz=-3.2; hz<=1.6; hz+=1.4){
+    hotRibbons.push(mkTube([
+      [3.0, 1.2, hz], [3.1, 2.5, hz-0.3], [4.0, 3.5, -4.5], [6.2, 4.0, -5.5]
+    ], 0.08, 0xff2600, 0.8));
+  }
+  /* Overhead Duct Internal Return Ribbons (moving toward CRAC) */
+  hotRibbons.push(mkTube([
+    [6.8, 4.2, 1.0], [6.8, 4.2, -5.8], [0.6, 4.2, -6.4], [-4.8, 4.2, -6.4], [-4.8, 4.0, 0.4]
+  ], 0.11, 0xff2600, 0.9));
+
+  /* Hot vertical arrows in Hot Aisles */
+  [[-1.8, -3.5, 2.0], [3.0, -3.5, 2.0]].forEach(([hx, z1, z2])=>{
+    for(let hz=z1; hz<=z2; hz+=1.2){
+      const arr=mkArrow(0xff3b30, true);
+      arr.position.set(hx, 1.0+Math.random()*0.8, hz);
+      scene.add(arr);
+      hotArrows.push({mesh:arr, base:0.8, top:4.2, spd:0.028});
+    }
+  });
+
+  /* Horizontal arrows inside overhead duct (returning to CRAC) */
+  for(let dx=-4.0; dx<=5.5; dx+=1.4){
+    const arr=mkArrow(0xff3b30, false);
+    arr.position.set(dx, 4.2, -6.4);
+    scene.add(arr);
+    ductArrows.push({mesh:arr, startX:6.5, endX:-4.8, spd:0.046});
+  }
+
+  /* ══ CFD PARTICLES (Laminar Cold & Turbulent Hot) ══ */
+  const Nc=900, Nh=900;
+  /* Cold Particles */
+  const cGeo=new THREE.BufferGeometry();
+  const cPos=new Float32Array(Nc*3);
+  for(let i=0; i<Nc; i++){
+    cPos[i*3]=0.0+Math.random()*1.0;
+    cPos[i*3+1]=0.1+Math.random()*2.5;
+    cPos[i*3+2]=-4.0+Math.random()*7.0;
+    velCold.push({vy:0.022+Math.random()*0.025});
+  }
+  cGeo.setAttribute('position', new THREE.BufferAttribute(cPos, 3));
+  ptsCold=new THREE.Points(cGeo, new THREE.PointsMaterial({
+    color:0x00e5ff, size:0.12, transparent:true, opacity:0.88, blending:THREE.AdditiveBlending, depthWrite:false
+  }));
+  scene.add(ptsCold);
+
+  /* Hot Particles */
+  const hGeo=new THREE.BufferGeometry();
+  const hPos=new Float32Array(Nh*3);
+  for(let i=0; i<Nh; i++){
+    const isDuct=Math.random()>0.55;
+    if(isDuct){
+      hPos[i*3]=-4.5+Math.random()*11.0;
+      hPos[i*3+1]=4.2+(Math.random()-0.5)*0.3;
+      hPos[i*3+2]=-6.4+(Math.random()-0.5)*0.4;
+      velHot.push({type:'duct', vx:-0.048-Math.random()*0.02});
+    } else {
+      const side=Math.random()>0.5;
+      hPos[i*3]=side?(-1.8+(Math.random()-0.5)*0.4):(3.0+(Math.random()-0.5)*0.4);
+      hPos[i*3+1]=1.0+Math.random()*3.2;
+      hPos[i*3+2]=-3.8+Math.random()*6.0;
+      velHot.push({type:'rise', vy:0.026+Math.random()*0.028});
+    }
+  }
+  hGeo.setAttribute('position', new THREE.BufferAttribute(hPos, 3));
+  ptsHot=new THREE.Points(hGeo, new THREE.PointsMaterial({
+    color:0xff3b30, size:0.13, transparent:true, opacity:0.88, blending:THREE.AdditiveBlending, depthWrite:false
+  }));
+  scene.add(ptsHot);
+}
+
+/* ──────────────────────────────────────────────────
+   DOOR ANIMATION
+────────────────────────────────────────────────── */
+let doorAngle=0, doorTarget=0, doorAnimating=false;
+function toggleDoor(){
+  if(doorAnimating) return;
+  doorTarget=doorOpen?0:-Math.PI/2;
+  doorOpen=!doorOpen;
+  doorAnimating=true;
+  toast(doorOpen?'🚪 Puerta abierta — Bypass térmico simulado':'🚪 Puerta herméticamente cerrada');
+  animateDoor();
+}
+function animateDoor(){
+  const diff=doorTarget-doorAngle;
+  if(Math.abs(diff)<0.01){ doorAngle=doorTarget; doorAnimating=false; applyDoorRotation(); return; }
+  doorAngle+=diff*0.12;
+  applyDoorRotation();
+  requestAnimationFrame(animateDoor);
+}
+function applyDoorRotation(){
+  if(doorMesh) doorMesh.rotation.y=doorAngle;
+}
+
+/* ──────────────────────────────────────────────────
+   2D BADGE POSITION PROJECTION
+────────────────────────────────────────────────── */
+function updateBadges(){
+  const hw=innerWidth/2, hh=innerHeight/2;
+  const tmp=new THREE.Vector3();
+  [['bCrac','crac'],['bCold','cold'],['bHot','hot'],['bRet','ret']].forEach(([id,key])=>{
+    tmp.copy(BPOS[key]).project(cam);
+    const el=document.getElementById(id);
+    if(tmp.z<1 && flowing){
+      el.style.left=(tmp.x*hw+hw)+'px';
+      el.style.top=(-tmp.y*hh+hh)+'px';
+      el.style.display='flex';
+    } else el.style.display='none';
+  });
+}
+
+/* ──────────────────────────────────────────────────
+   MAIN ANIMATION LOOP
+────────────────────────────────────────────────── */
+function loop(){
+  requestAnimationFrame(loop);
+  const ts=performance.now()*0.001;
+
+  if(!paused && flowing){
+    /* Pulsing lights */
+    lights.cold.intensity=7.5+Math.sin(ts*2.8)*1.0;
+    lights.hot1.intensity=5.0+Math.sin(ts*2.2+1.5)*0.8;
+    lights.hot2.intensity=5.0+Math.sin(ts*2.2+2.0)*0.8;
+    lights.duct.intensity=5.5+Math.sin(ts*1.6+0.5)*0.7;
+
+    /* Cold arrows rising */
+    coldArrows.forEach(a=>{
+      a.mesh.position.y+=a.spd*speedF;
+      if(a.mesh.position.y>a.top) a.mesh.position.y=a.base;
+    });
+
+    /* Hot arrows rising */
+    hotArrows.forEach(a=>{
+      a.mesh.position.y+=a.spd*speedF;
+      if(a.mesh.position.y>a.top) a.mesh.position.y=a.base;
+    });
+
+    /* Duct arrows returning */
+    ductArrows.forEach(d=>{
+      d.mesh.position.x-=d.spd*speedF;
+      if(d.mesh.position.x<d.endX) d.mesh.position.x=d.startX;
+    });
+
+    /* Cold particles */
+    const cp=ptsCold.geometry.attributes.position.array;
+    velCold.forEach((v,i)=>{
+      cp[i*3+1]+=v.vy*speedF;
+      if(cp[i*3+1]>2.7){ cp[i*3+1]=0.1; cp[i*3]=0.0+Math.random()*1.0; cp[i*3+2]=-4.0+Math.random()*7.0; }
+    });
+    ptsCold.geometry.attributes.position.needsUpdate=true;
+
+    /* Hot particles */
+    const hp=ptsHot.geometry.attributes.position.array;
+    velHot.forEach((v,i)=>{
+      if(v.type==='duct'){
+        hp[i*3]+=v.vx*speedF;
+        if(hp[i*3]<-4.8) hp[i*3]=6.5;
+      } else {
+        hp[i*3+1]+=v.vy*speedF;
+        if(hp[i*3+1]>4.2) hp[i*3+1]=1.0;
+      }
+    });
+    ptsHot.geometry.attributes.position.needsUpdate=true;
+  }
+
+  /* Blinking server LEDs */
+  rackLEDs.forEach(l=>{
+    const on=Math.sin(ts*l.fr*5+l.ph)>0.12;
+    l.m.material.color.setHex(on?0x00e5ff:0x10b981);
+  });
+
+  updateBadges();
+  orb.update();
+  rnd.render(scene, cam);
+}
+
+/* ──────────────────────────────────────────────────
+   RAYCAST CLICK INTERACTION
+────────────────────────────────────────────────── */
+function onClick(e){
+  mouse.set((e.clientX/innerWidth)*2-1, -(e.clientY/innerHeight)*2+1);
+  rc.setFromCamera(mouse, cam);
+  const hits=rc.intersectObjects(scene.children, true);
+  if(!hits.length) return;
+  let p=hits[0].object;
+  while(p){
+    const d=p.userData||{};
+    if(d.isCrac) return showIns('crac');
+    if(d.isRack) return showIns('rack');
+    if(d.isCold) return showIns('cold');
+    if(d.isDuct) return showIns('ret');
+    if(d.isDoor){ toggleDoor(); return; }
+    p=p.parent;
+  }
+}
+
+/* ──────────────────────────────────────────────────
+   SCENARIOS
+────────────────────────────────────────────────── */
+const SCENES={
+  n:{id:'pN',cls:'on',tag:'NORMAL N+1',tagBg:'rgba(56,189,248,.18)',tagC:'#38bdf8',
+     I:'18.0',R:'31.5',S:'24.2',V:'1.8 m/s',P:'1.35 · Óptimo',Pc:'pue',H:'48 % HR',
+     msg:'🟢 Normal N+1: Flujo balanceado y redundancia activa.',
+     crac:0xd8dcdf,coldI:8.5,sbarC:''},
+  f:{id:'pF',cls:'or',tag:'FALLA CRAC 01',tagBg:'rgba(239,68,68,.25)',tagC:'#ef4444',
+     I:'22.4',R:'35.8',S:'27.5',V:'2.4 m/s (Backup)',P:'1.62 · Alerta',Pc:'pue d',H:'56 % HR',
+     msg:'🔴 ALERTA: CRAC 01 desconectado — Unidad Backup al 100%.',
+     crac:0x7f1d1d,coldI:3.5,sbarC:'red'},
+  b:{id:'pB',cls:'oa',tag:'BYPASS TÉRMICO',tagBg:'rgba(245,158,11,.25)',tagC:'#f59e0b',
+     I:'19.8',R:'26.2 (Mezcla)',S:'28.4',V:'1.2 m/s',P:'1.85 · Crítico',Pc:'pue d',H:'42 % HR',
+     msg:'⚠️ Puerta abierta: Mezcla turbulenta y recirculación térmica.',
+     crac:0xd8dcdf,coldI:5.0,sbarC:'amber'},
+  c:{id:'pC',cls:'og',tag:'FREE COOLING',tagBg:'rgba(16,185,129,.25)',tagC:'#10b981',
+     I:'17.5',R:'30.8',S:'23.8',V:'1.9 m/s',P:'1.18 · Eco',Pc:'pue',H:'50 % HR',
+     msg:'❄️ Free Cooling nocturno: -42% de consumo eléctrico en compresores.',
+     crac:0xb2f5e8,coldI:9.0,sbarC:'green'}
+};
+
+function setScene(s){
+  scenario=s;
+  const d=SCENES[s];
+  document.querySelectorAll('#dock .pl').forEach(b=>{if(b.id.startsWith('p')&&b.id.length===2)b.className='pl';});
+  document.getElementById(d.id).className='pl '+d.cls;
+  const st=document.getElementById('stag');
+  st.textContent=d.tag; st.style.background=d.tagBg; st.style.color=d.tagC;
+  ['I','R','S','V','P','H'].forEach(k=>document.getElementById('v'+k).textContent=d[k]);
+  document.getElementById('vP').className=d.Pc;
+  cracMesh.material.color.setHex(d.crac);
+  lights.cold.intensity=d.coldI;
+  document.getElementById('sbar').className=d.sbarC;
+  toast(d.msg);
+
+  if(s==='b'&&!doorOpen) toggleDoor();
+  if(s==='f') startAlarm(); else stopAlarm();
+}
+
+/* ──────────────────────────────────────────────────
+   VIEW MODES (Realista HD, FLIR, Rayos X 3D)
+────────────────────────────────────────────────── */
+function setView(v){
+  curView=v;
+  ['vRe','vFl','vXr'].forEach(id=>document.getElementById(id).className='pl');
+
+  if(v==='r'){
+    document.getElementById('vRe').className='pl on';
+    scene.traverse(o=>{ if(o.isMesh && savedMats.has(o.id)) o.material=savedMats.get(o.id); });
+    internalComps.forEach(o=>o.visible=true);
+    scene.background.setHex(0x060c18);
+    toast('👁 Vista Realista HD restaurada.');
+  } else if(v==='f'){
+    document.getElementById('vFl').className='pl on';
+    scene.traverse(o=>{
+      if(o.isMesh){
+        if(!savedMats.has(o.id)) savedMats.set(o.id, o.material);
+        let c=0x1e3a8a; // Default ambient deep blue
+        if(o.userData.isCold) c=0x06b6d4; // 18-20 C
+        else if(o.userData.isCrac) c=0x0284c7; // CRAC body
+        else if(o.userData.isRack) c=0xf59e0b; // Servers warm 28 C
+        else if(o.userData.isDuct) c=0xdc2626; // Return duct 31.5 C
+        else if(o.position.y>2.5) c=0xef4444; // Hot upper zones
+        o.material=new THREE.MeshBasicMaterial({color:c});
+      }
+    });
+    scene.background.setHex(0x04060b);
+    toast('🌡 FLIR: Termografía infrarroja calórica activa.');
+  } else {
+    /* 🦴 RAYOS X 3D (CAD/BIM Engineering Transparency) */
+    document.getElementById('vXr').className='pl on';
+    scene.traverse(o=>{
+      if(o.isMesh){
+        if(!savedMats.has(o.id)) savedMats.set(o.id, o.material);
+        const isEquip=o.userData.isCrac||o.userData.isRack||o.userData.isDuct||o.userData.isDoor;
+        const isTile=o.userData.isCold||floorTilesGroup.children.includes(o);
+        if(isTile){
+          o.material=new THREE.MeshBasicMaterial({
+            color:0x00e5ff, wireframe:true, transparent:true, opacity:0.35
+          });
+        } else if(isEquip){
+          o.material=new THREE.MeshBasicMaterial({
+            color:0x38bdf8, wireframe:true, transparent:true, opacity:0.45
+          });
+        } else if(o.userData.internal){
+          o.material=new THREE.MeshBasicMaterial({color:0x10b981});
+        } else {
+          o.material=new THREE.MeshBasicMaterial({
+            color:0x1e3a5f, wireframe:true, transparent:true, opacity:0.18
+          });
+        }
+      }
+    });
+    scene.background.setHex(0x020612);
+    toast('🦴 Rayos X 3D: Estructura interior, plenum, tuberías y servidores al 100% visibles.');
+  }
+}
+
+/* ──────────────────────────────────────────────────
+   INSPECT COMPONENT MODAL (Stable camera)
+────────────────────────────────────────────────── */
+const INS={
+  crac:{t:'❄️ Unidad CRAC de Precisión N+1', s:'Liebert / Schneider Electric · Expansión directa DX',
+    v:['60 kW (17 TR)','8,500 CFM','EC Inverter 78%','13.5 °C'],
+    d:'Inyecta aire frío preenfriado a 18°C directamente al plenum del piso técnico. Sus ventiladores EC modulan su velocidad según la carga térmica disipada por los servidores.'},
+  cold:{t:'🧊 Pasillo Frío Confinado (CAC)', s:'Contención con paneles estancos y baldosas perforadas',
+    v:['18.0 °C','+0.05 pulg w.g.','25% Apertura','550 CFM/baldosa'],
+    d:'Confinamiento hermético que evita la mezcla de aire caliente. Cumple con la norma ASHRAE TC 9.9 Clase A1 (18–27°C) directamente en la cara de admisión de los racks.'},
+  hot:{t:'🔥 Pasillo Caliente (HAC)', s:'Zona de descarga térmica de CPUs, GPUs y fuentes de poder',
+    v:['31.5 °C','Front-to-Back','12,000 RPM','7.5 kW / Rack'],
+    d:'El calor expulsado por los ventiladores traseros de los servidores asciende por convección natural directo hacia las tomas del ducto superior sin recircular hacia la zona fría.'},
+  ret:{t:'💨 Ducto Perimetral de Retorno', s:'Canalización hermética directa al evaporador del CRAC',
+    v:['31.5 °C','12,500 CFM','Chapa Galvanizada','COP Máximo'],
+    d:'Conduce el 100% del calor directamente al serpentín evaporador del CRAC, maximizando el coeficiente COP y eliminando puntos calientes o cortocircuitos térmicos.'},
+  rack:{t:'🖥️ Racks de Servidores 42U', s:'HPE / Dell PowerEdge · Alta densidad blade & storage',
+    v:['42U 1.2m fondo','7.5 kW / Rack','18.5 °C Entrada','32.5 °C Salida'],
+    d:'Chasis modulares con absorción frontal de aire frío (18°C) y expulsión trasera de aire caliente a 32.5°C. Monitoreo constante con 3 sensores térmicos (inferior, medio y superior).'}
+};
+
+function showIns(type){
+  const d=INS[type]||INS.crac;
+  document.getElementById('insT').innerHTML=d.t;
+  document.getElementById('insS').textContent=d.s;
+  ['1','2','3','4'].forEach((n,i)=>document.getElementById('iV'+n).textContent=d.v[i]);
+  document.getElementById('insD').textContent=d.d;
+  document.getElementById('ins').style.display='block';
+}
+function closeIns(){ document.getElementById('ins').style.display='none'; }
+
+/* ──────────────────────────────────────────────────
+   CAMERA INTERPOLATION
+────────────────────────────────────────────────── */
+function moveCam(np, nt){
+  const sp={x:cam.position.x, y:cam.position.y, z:cam.position.z};
+  const st={x:orb.target.x, y:orb.target.y, z:orb.target.z};
+  let t0=null;
+  function step(t){
+    if(!t0) t0=t;
+    const p=Math.min((t-t0)/600, 1);
+    const e=p<0.5 ? 2*p*p : -1+(4-2*p)*p;
+    cam.position.set(sp.x+(np[0]-sp.x)*e, sp.y+(np[1]-sp.y)*e, sp.z+(np[2]-sp.z)*e);
+    orb.target.set(st.x+(nt[0]-st.x)*e, st.y+(nt[1]-st.y)*e, st.z+(nt[2]-st.z)*e);
+    orb.update();
+    if(p<1) requestAnimationFrame(step);
+  }
+  requestAnimationFrame(step);
+}
+function resetCam(){ moveCam([13.2, 10.2, 12.8], [0.3, 1.4, -0.9]); }
+
+/* ──────────────────────────────────────────────────
+   CONTROLS & SLIDERS
+────────────────────────────────────────────────── */
+function tPause(){
+  paused=!paused;
+  document.getElementById('pico').textContent=paused?'▶':'⏸';
+  document.getElementById('ptx').textContent=paused?'Reanudar':'Pausar';
+}
+function tFlow(){
+  flowing=!flowing;
+  document.getElementById('swF').classList.toggle('off', !flowing);
+  const all=[...coldArrows, ...hotArrows, ...ductArrows, ...coldRibbons, ...hotRibbons, ptsCold, ptsHot];
+  all.forEach(o=>{ const m=o.mesh||o; if(m?.visible!==undefined) m.visible=flowing; });
+}
+function sSpeed(e){
+  const r=e.currentTarget.getBoundingClientRect();
+  const p=Math.max(0.1, Math.min(1.0, (e.clientX-r.left)/r.width));
+  speedF=p;
+  document.getElementById('sF').style.width=p*100+'%';
+  document.getElementById('sTx').textContent=Math.round(p*100)+'%';
+  document.getElementById('vV').textContent=(1.8*p).toFixed(1)+' m/s';
+}
+function sDens(e){
+  const r=e.currentTarget.getBoundingClientRect();
+  const p=Math.max(0.2, Math.min(1.0, (e.clientX-r.left)/r.width));
+  document.getElementById('dF').style.width=p*100+'%';
+  document.getElementById('dTx').textContent=Math.round(p*100)+'%';
+  ptsCold.material.size=0.08+0.1*p;
+  ptsHot.material.size=0.09+0.1*p;
+}
+
+/* ──────────────────────────────────────────────────
+   SCREENSHOT CAPTURE
+────────────────────────────────────────────────── */
+function captura(){
+  rnd.render(scene, cam);
+  const a=document.createElement('a');
+  a.download='Simulacion_3D_DataCenter_Gerson_Pintado_Huaman.png';
+  a.href=rnd.domElement.toDataURL('image/png');
+  a.click();
+  toast('📸 Captura descargada: "Simulacion_3D_DataCenter_Gerson_Pintado_Huaman.png"');
+}
+
+/* ──────────────────────────────────────────────────
+   AUDIO ENGINE (Web Audio API)
+────────────────────────────────────────────────── */
+function tAudio(){
+  if(!audioCtx){
+    audioCtx=new(window.AudioContext||window.webkitAudioContext)();
+    masterG=audioCtx.createGain(); masterG.gain.value=0.001;
+    masterG.connect(audioCtx.destination);
+
+    /* Whispering Fan Pink Noise */
+    const buf=audioCtx.createBuffer(1, audioCtx.sampleRate*2, audioCtx.sampleRate);
+    const dat=buf.getChannelData(0);
+    let b0=0,b1=0,b2=0,b3=0,b4=0,b5=0,b6=0;
+    for(let i=0; i<dat.length; i++){
+      const white=Math.random()*2-1;
+      b0=0.99886*b0+white*0.0555179; b1=0.99332*b1+white*0.0750759;
+      b2=0.96900*b2+white*0.1538520; b3=0.86650*b3+white*0.3104856;
+      b4=0.55000*b4+white*0.5329522; b5=-0.7616*b5-white*0.0168980;
+      dat[i]=(b0+b1+b2+b3+b4+b5+b6+white*0.5362)*0.08;
+      b6=white*0.115926;
+    }
+    fanSrc=audioCtx.createBufferSource(); fanSrc.buffer=buf; fanSrc.loop=true;
+    const fanFilt=audioCtx.createBiquadFilter(); fanFilt.type='lowpass'; fanFilt.frequency.value=420;
+    fanSrc.connect(fanFilt); fanFilt.connect(masterG); fanSrc.start();
+
+    /* 60Hz Compressor Hum */
+    oscComp=audioCtx.createOscillator(); oscComp.type='triangle'; oscComp.frequency.value=58;
+    const compG=audioCtx.createGain(); compG.gain.value=0.18;
+    oscComp.connect(compG); compG.connect(masterG); oscComp.start();
+  }
+  if(audioCtx.state==='suspended') audioCtx.resume();
+  audioOn=!audioOn;
+  const b=document.getElementById('pAud');
+  b.textContent=audioOn?'🔊 Audio':'🔇 Audio';
+  b.className=audioOn?'pl on':'pl';
+  masterG.gain.setTargetAtTime(audioOn?0.35:0.001, audioCtx.currentTime, 0.15);
+  if(audioOn) toast('🔊 Sonido acústico ambiental del Data Center activado.');
+  else stopAlarm();
+}
+
+function startAlarm(){
+  if(!audioOn || !audioCtx) return; stopAlarm();
+  alarmO=audioCtx.createOscillator(); alarmO.type='sawtooth'; alarmO.frequency.value=880;
+  const ag=audioCtx.createGain(); ag.gain.value=0.22;
+  alarmO.connect(ag); ag.connect(masterG); alarmO.start();
+}
+function stopAlarm(){ if(alarmO){ try{ alarmO.stop(); }catch(e){} alarmO=null; } }
+
+/* ──────────────────────────────────────────────────
+   TOAST & RESIZE
+────────────────────────────────────────────────── */
+function toast(msg){
+  const el=document.getElementById('toast');
+  el.textContent=msg; el.style.display='block';
+  el.style.animation='none'; void el.offsetWidth;
+  el.style.animation='fadeIO 2.6s ease forwards';
+  setTimeout(()=>el.style.display='none', 2700);
+}
+function onResize(){
+  cam.aspect=innerWidth/innerHeight;
+  cam.updateProjectionMatrix();
+  rnd.setSize(innerWidth, innerHeight);
+}
+</script>
+</body>
+</html>
