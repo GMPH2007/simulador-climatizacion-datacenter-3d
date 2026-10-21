@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
-  <title>Data Center — Simulación 3D HVAC | Gerson Misael Pintado Huaman</title>
+  <title>Data Center — Simulación 3D HVAC | Semana 9 | Gerson Misael Pintado Huaman</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@500;700;800&display=swap" rel="stylesheet">
   <script src="assets/three.min.js"></script>
   <script src="assets/OrbitControls.js"></script>
@@ -23,22 +23,40 @@ html,body{width:100%;height:100%;overflow:hidden;background:#050811;
   z-index:10;pointer-events:auto;transition:border-color .2s}
 
 /* ── HEADER top-left ── */
-#hdr{top:14px;left:14px;padding:12px 16px;display:flex;align-items:center;gap:12px;max-width:390px}
+#hdr{top:14px;left:14px;padding:12px 16px;display:flex;align-items:center;gap:12px;max-width:410px}
 .hicn{flex-shrink:0;width:44px;height:44px;border-radius:10px;
   background:linear-gradient(135deg,#0284c7,#0369a1);
   border:1px solid rgba(56,189,248,.6);box-shadow:0 0 20px rgba(14,165,233,.5);
   display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px}
 .rl{width:22px;height:5px;border-radius:2px;background:#e0f2fe;position:relative}
 .rl::before{content:'';position:absolute;left:2px;top:1px;width:3px;height:3px;border-radius:50%;background:#0284c7}
-.htx h1{font-size:14.5px;font-weight:800;color:#fff;letter-spacing:-.2px;line-height:1.2}
+.htx h1{font-size:14px;font-weight:800;color:#fff;letter-spacing:-.2px;line-height:1.2;display:flex;align-items:center;gap:6px}
+.s9tag{font-size:9.5px;font-weight:800;background:rgba(56,189,248,.2);border:1px solid rgba(56,189,248,.4);
+  color:#38bdf8;padding:1px 6px;border-radius:4px;letter-spacing:.4px}
 .htx p{font-size:10.5px;color:#7dd3fc;margin-top:2px;font-weight:500}
-.htx small{font-size:9.5px;color:#94a3b8;margin-top:3px;display:block}
+.htx small{font-size:9.5px;color:#94a3b8;margin-top:3px;display:block;line-height:1.35}
 .htx strong{color:#fbbf24;font-weight:700}
+
+/* ── MARCA DE AGUA FLOTANTE (WATERMARK PERMANENTE) ── */
+#wm{position:absolute;bottom:68px;right:14px;
+  background:rgba(6,12,28,.85);backdrop-filter:blur(16px);
+  border:1px solid rgba(56,189,248,.35);border-radius:10px;
+  padding:8px 14px;display:flex;align-items:center;gap:10px;
+  z-index:15;box-shadow:0 6px 25px rgba(0,0,0,.7),0 0 16px rgba(56,189,248,.2);
+  pointer-events:none}
+.wm-badge{width:32px;height:32px;border-radius:8px;background:linear-gradient(135deg,#0284c7,#0f172a);
+  border:1px solid #38bdf8;display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0}
+.wm-text{display:flex;flex-direction:column;gap:1px}
+.wm-top{font-size:8.5px;font-weight:800;color:#38bdf8;letter-spacing:.6px;text-transform:uppercase}
+.wm-name{font-family:'JetBrains Mono',monospace;font-size:11.5px;font-weight:900;color:#ffffff;
+  letter-spacing:.4px;text-shadow:0 0 8px rgba(0,229,255,.6)}
+.wm-doc{font-size:9px;color:#cbd5e1;font-weight:600}
+.wm-doc strong{color:#fbbf24}
 
 /* ── DOCK top-center ── */
 #dock{top:14px;left:50%;transform:translateX(-50%);
   padding:6px 12px;display:flex;align-items:center;gap:6px;z-index:12;white-space:nowrap}
-@media(max-width:1380px){#dock{top:80px;left:14px;transform:none}}
+@media(max-width:1380px){#dock{top:86px;left:14px;transform:none}}
 .dsep{width:1px;height:22px;background:rgba(255,255,255,.14);margin:0 2px}
 .dlbl{font-size:9px;font-weight:800;color:#64748b;text-transform:uppercase;letter-spacing:.7px;margin-right:2px}
 .pl{display:flex;align-items:center;gap:5px;
@@ -172,13 +190,23 @@ html,body{width:100%;height:100%;overflow:hidden;background:#050811;
 <canvas id="cv"></canvas>
 <div id="toast"></div>
 
-<!-- HEADER -->
+<!-- HEADER CON DATOS Y SEMANA 9 -->
 <div id="hdr" class="gc">
   <div class="hicn"><div class="rl"></div><div class="rl"></div><div class="rl"></div></div>
   <div class="htx">
-    <h1>Data Center — Aire Acondicionado</h1>
-    <p>Simulación 3D de flujo de aire y climatización</p>
-    <small>IESTP Hermanos Cárcamo · <strong>Gerson Misael Pintado Huaman</strong> · Ing. Javier Eduardo Jaramillo Atoche</small>
+    <h1>Data Center — Aire Acondicionado <span class="s9tag">SEMANA 9</span></h1>
+    <p>Simulación 3D de flujo de aire y climatización HVAC</p>
+    <small>IESTP Hermanos Cárcamo · Estudiante: <strong>Gerson Misael Pintado Huaman</strong><br>Docente: <strong>Dr. Javier Eduardo Jaramillo Atoche</strong></small>
+  </div>
+</div>
+
+<!-- MARCA DE AGUA FLOTANTE PERMANENTE -->
+<div id="wm">
+  <div class="wm-badge">🔒</div>
+  <div class="wm-text">
+    <div class="wm-top">AUTORÍA REGISTRADA · SEMANA 9</div>
+    <div class="wm-name">GERSON MISAEL PINTADO HUAMAN</div>
+    <div class="wm-doc">Docente: <strong>Dr. Javier Eduardo Jaramillo Atoche</strong> · IESTP Hermanos Cárcamo</div>
   </div>
 </div>
 
@@ -262,9 +290,9 @@ html,body{width:100%;height:100%;overflow:hidden;background:#050811;
 
 <script>
 /* ════════════════════════════════════════════════════════════
-   THREE.JS 3D DATA CENTER SIMULATOR
+   THREE.JS 3D DATA CENTER SIMULATOR — SEMANA 9
    IESTP Hermanos Cárcamo — Gerson Misael Pintado Huaman
-   Docente: Ing. Javier Eduardo Jaramillo Atoche
+   Docente: Dr. Javier Eduardo Jaramillo Atoche
 ════════════════════════════════════════════════════════════ */
 let scene, cam, rnd, orb;
 let paused=false, flowing=true, speedF=1.0, doorOpen=false;
@@ -390,7 +418,6 @@ function init(){
   scene.fog=new THREE.FogExp2(0x060c18, 0.012);
 
   cam=new THREE.PerspectiveCamera(36, innerWidth/innerHeight, 0.1, 150);
-  /* Centered, balanced, panoramic isometric camera */
   cam.position.set(13.2, 10.2, 12.8);
 
   rnd=new THREE.WebGLRenderer({canvas:cv, antialias:true, powerPreference:'high-performance', preserveDrawingBuffer:true});
@@ -405,7 +432,6 @@ function init(){
   orb.enableDamping=true; orb.dampingFactor=0.05;
   orb.maxPolarAngle=Math.PI/2 - 0.02;
   orb.minDistance=4; orb.maxDistance=40;
-  /* Centered target */
   orb.target.set(0.3, 1.4, -0.9);
 
   buildLights();
@@ -417,7 +443,6 @@ function init(){
 
   window.addEventListener('resize', onResize);
 
-  /* Precise click vs drag handler */
   let downPos={x:0, y:0};
   cv.addEventListener('pointerdown', e => { downPos={x:e.clientX, y:e.clientY}; });
   cv.addEventListener('pointerup', e => {
@@ -578,6 +603,26 @@ function buildRoom(){
   const ext=new THREE.Mesh(new THREE.CylinderGeometry(0.09, 0.09, 0.55, 12),
     new THREE.MeshStandardMaterial({color:0xdc2626, metalness:0.8, roughness:0.2}));
   ext.position.set(8.7, 0.35, 3.4); scene.add(ext);
+
+  /* ══ PLACA FÍSICA 3D DE AUTORÍA (MARCA DE AGUA EN PARED 3D) ══ */
+  const plkCv = document.createElement('canvas');
+  plkCv.width = 512; plkCv.height = 160;
+  const plkCtx = plkCv.getContext('2d');
+  plkCtx.fillStyle = '#0b1329'; plkCtx.fillRect(0,0,512,160);
+  plkCtx.strokeStyle = '#00e5ff'; plkCtx.lineWidth = 6; plkCtx.strokeRect(4,4,504,152);
+  plkCtx.fillStyle = '#38bdf8'; plkCtx.font = 'bold 20px "Inter", sans-serif';
+  plkCtx.fillText('IESTP "HERMANOS CÁRCAMO" · DDC SEMANA 9', 24, 36);
+  plkCtx.fillStyle = '#ffffff'; plkCtx.font = 'bold 28px "JetBrains Mono", monospace';
+  plkCtx.fillText('GERSON MISAEL PINTADO HUAMAN', 24, 76);
+  plkCtx.fillStyle = '#fbbf24'; plkCtx.font = 'bold 21px "Inter", sans-serif';
+  plkCtx.fillText('Docente: Dr. Javier Eduardo Jaramillo Atoche', 24, 114);
+  plkCtx.fillStyle = '#94a3b8'; plkCtx.font = '16px "Inter", sans-serif';
+  plkCtx.fillText('Simulación 3D Climatización HVAC & Pasillos Confinados', 24, 142);
+  const plkTex = new THREE.CanvasTexture(plkCv);
+  const plaque = new THREE.Mesh(new THREE.BoxGeometry(2.6, 0.8, 0.05),
+    new THREE.MeshStandardMaterial({map:plkTex, roughness:0.25, metalness:0.8}));
+  plaque.position.set(-1.0, 3.3, -7.3);
+  scene.add(plaque);
 }
 
 /* ──────────────────────────────────────────────────
@@ -585,9 +630,8 @@ function buildRoom(){
 ────────────────────────────────────────────────── */
 function buildCRAC(){
   const cracGroup=new THREE.Group();
-  /* Placed on left side, front-facing towards camera */
   cracGroup.position.set(-4.8, 0, 0.4);
-  cracGroup.rotation.y = 0.35; // Angled 20 degrees towards camera for perfect visibility!
+  cracGroup.rotation.y = 0.35; // 20° facing camera
 
   /* Main metallic cabinet */
   const bodyMat=new THREE.MeshStandardMaterial({color:0xd8dcdf, roughness:0.3, metalness:0.6});
@@ -640,11 +684,6 @@ function buildRacks(){
   const frontMat=new THREE.MeshStandardMaterial({map:rackTex, roughness:0.3, metalness:0.7});
   const ledCols=[0x00e5ff, 0x10b981, 0x38bdf8, 0x00ff80, 0x00e5ff, 0x34d399];
 
-  /* 4 Rows configuration:
-     Row A: Left (x = -2.8)
-     Row B: Left side of Cold Aisle (x = -0.7, faces +X)
-     Row C: Right side of Cold Aisle (x = +1.7, faces -X)
-     Row D: Outer Right (x = +4.2, faces -X) */
   const rows=[
     {x:-2.8, rot:0,       z:[-3.4, -2.1, -0.8]},
     {x:-0.7, rot:0,       z:[-3.8, -2.5, -1.2, 0.1, 1.4, 2.7]},
@@ -658,17 +697,14 @@ function buildRacks(){
       rg.position.set(r.x, 0, pz);
       rg.rotation.y=r.rot;
 
-      /* Main 42U Cabinet Frame */
       const cab=new THREE.Mesh(new THREE.BoxGeometry(0.88, 2.4, 1.05), fMat);
       cab.position.y=1.2; cab.castShadow=true; cab.receiveShadow=true;
       cab.userData.isRack=1; rg.add(cab);
 
-      /* Front Server Face with texture */
       const face=new THREE.Mesh(new THREE.PlaneGeometry(0.82, 2.25), frontMat);
       face.position.set(0.445, 1.2, 0); face.rotation.y=Math.PI/2;
       face.userData.isRack=1; rg.add(face);
 
-      /* Blinking LED Array */
       for(let u=0; u<7; u++){
         const lm=new THREE.MeshBasicMaterial({color:ledCols[u%ledCols.length]});
         const led=new THREE.Mesh(new THREE.BoxGeometry(0.02, 0.03, 0.04), lm);
@@ -677,7 +713,6 @@ function buildRacks(){
         rackLEDs.push({m:led, ph:Math.random()*Math.PI*2, fr:0.8+Math.random()*2.5});
       }
 
-      /* Internal server chassis for X-Ray mode */
       for(let u=0; u<5; u++){
         const blade=new THREE.Mesh(new THREE.BoxGeometry(0.78, 0.18, 0.95),
           new THREE.MeshStandardMaterial({color:0x1e293b, metalness:0.9, roughness:0.2}));
@@ -762,7 +797,6 @@ function buildAirflow(){
     coldRibbons.push(mkTube(pts, r, 0x00e5ff, i<5?0.88:0.65));
   });
 
-  /* Cold laminar upward arrows in Cold Aisle */
   for(let az=-3.6; az<=2.6; az+=0.75){
     const arr=mkArrow(0x00e5ff, true);
     arr.position.set(0.5, 0.3+Math.random()*0.8, az);
@@ -770,25 +804,21 @@ function buildAirflow(){
     coldArrows.push({mesh:arr, base:0.1, top:2.7, spd:0.026});
   }
 
-  /* ══ RED HOT RIBBONS (Rising from hot aisles into overhead ducts) ══ */
-  /* Hot Aisle 1 (x = -1.8) */
+  /* ══ RED HOT RIBBONS ══ */
   for(let hz=-3.2; hz<=1.6; hz+=1.4){
     hotRibbons.push(mkTube([
       [-1.8, 1.2, hz], [-1.8, 2.5, hz-0.3], [-2.0, 3.5, hz-0.7], [-1.8, 4.0, -6.2]
     ], 0.08, 0xff2600, 0.8));
   }
-  /* Hot Aisle 2 (x = 3.0) */
   for(let hz=-3.2; hz<=1.6; hz+=1.4){
     hotRibbons.push(mkTube([
       [3.0, 1.2, hz], [3.1, 2.5, hz-0.3], [4.0, 3.5, -4.5], [6.2, 4.0, -5.5]
     ], 0.08, 0xff2600, 0.8));
   }
-  /* Overhead Duct Internal Return Ribbons (moving toward CRAC) */
   hotRibbons.push(mkTube([
     [6.8, 4.2, 1.0], [6.8, 4.2, -5.8], [0.6, 4.2, -6.4], [-4.8, 4.2, -6.4], [-4.8, 4.0, 0.4]
   ], 0.11, 0xff2600, 0.9));
 
-  /* Hot vertical arrows in Hot Aisles */
   [[-1.8, -3.5, 2.0], [3.0, -3.5, 2.0]].forEach(([hx, z1, z2])=>{
     for(let hz=z1; hz<=z2; hz+=1.2){
       const arr=mkArrow(0xff3b30, true);
@@ -798,7 +828,6 @@ function buildAirflow(){
     }
   });
 
-  /* Horizontal arrows inside overhead duct (returning to CRAC) */
   for(let dx=-4.0; dx<=5.5; dx+=1.4){
     const arr=mkArrow(0xff3b30, false);
     arr.position.set(dx, 4.2, -6.4);
@@ -806,9 +835,8 @@ function buildAirflow(){
     ductArrows.push({mesh:arr, startX:6.5, endX:-4.8, spd:0.046});
   }
 
-  /* ══ CFD PARTICLES (Laminar Cold & Turbulent Hot) ══ */
+  /* ══ CFD PARTICLES ══ */
   const Nc=900, Nh=900;
-  /* Cold Particles */
   const cGeo=new THREE.BufferGeometry();
   const cPos=new Float32Array(Nc*3);
   for(let i=0; i<Nc; i++){
@@ -823,7 +851,6 @@ function buildAirflow(){
   }));
   scene.add(ptsCold);
 
-  /* Hot Particles */
   const hGeo=new THREE.BufferGeometry();
   const hPos=new Float32Array(Nh*3);
   for(let i=0; i<Nh; i++){
@@ -896,31 +923,26 @@ function loop(){
   const ts=performance.now()*0.001;
 
   if(!paused && flowing){
-    /* Pulsing lights */
     lights.cold.intensity=7.5+Math.sin(ts*2.8)*1.0;
     lights.hot1.intensity=5.0+Math.sin(ts*2.2+1.5)*0.8;
     lights.hot2.intensity=5.0+Math.sin(ts*2.2+2.0)*0.8;
     lights.duct.intensity=5.5+Math.sin(ts*1.6+0.5)*0.7;
 
-    /* Cold arrows rising */
     coldArrows.forEach(a=>{
       a.mesh.position.y+=a.spd*speedF;
       if(a.mesh.position.y>a.top) a.mesh.position.y=a.base;
     });
 
-    /* Hot arrows rising */
     hotArrows.forEach(a=>{
       a.mesh.position.y+=a.spd*speedF;
       if(a.mesh.position.y>a.top) a.mesh.position.y=a.base;
     });
 
-    /* Duct arrows returning */
     ductArrows.forEach(d=>{
       d.mesh.position.x-=d.spd*speedF;
       if(d.mesh.position.x<d.endX) d.mesh.position.x=d.startX;
     });
 
-    /* Cold particles */
     const cp=ptsCold.geometry.attributes.position.array;
     velCold.forEach((v,i)=>{
       cp[i*3+1]+=v.vy*speedF;
@@ -928,7 +950,6 @@ function loop(){
     });
     ptsCold.geometry.attributes.position.needsUpdate=true;
 
-    /* Hot particles */
     const hp=ptsHot.geometry.attributes.position.array;
     velHot.forEach((v,i)=>{
       if(v.type==='duct'){
@@ -942,7 +963,6 @@ function loop(){
     ptsHot.geometry.attributes.position.needsUpdate=true;
   }
 
-  /* Blinking server LEDs */
   rackLEDs.forEach(l=>{
     const on=Math.sin(ts*l.fr*5+l.ph)>0.12;
     l.m.material.color.setHex(on?0x00e5ff:0x10b981);
@@ -1031,12 +1051,12 @@ function setView(v){
     scene.traverse(o=>{
       if(o.isMesh){
         if(!savedMats.has(o.id)) savedMats.set(o.id, o.material);
-        let c=0x1e3a8a; // Default ambient deep blue
-        if(o.userData.isCold) c=0x06b6d4; // 18-20 C
-        else if(o.userData.isCrac) c=0x0284c7; // CRAC body
-        else if(o.userData.isRack) c=0xf59e0b; // Servers warm 28 C
-        else if(o.userData.isDuct) c=0xdc2626; // Return duct 31.5 C
-        else if(o.position.y>2.5) c=0xef4444; // Hot upper zones
+        let c=0x1e3a8a;
+        if(o.userData.isCold) c=0x06b6d4;
+        else if(o.userData.isCrac) c=0x0284c7;
+        else if(o.userData.isRack) c=0xf59e0b;
+        else if(o.userData.isDuct) c=0xdc2626;
+        else if(o.position.y>2.5) c=0xef4444;
         o.material=new THREE.MeshBasicMaterial({color:c});
       }
     });
@@ -1155,15 +1175,36 @@ function sDens(e){
 }
 
 /* ──────────────────────────────────────────────────
-   SCREENSHOT CAPTURE
+   SCREENSHOT CAPTURE (CON MARCA DE AGUA QUEMADA EN PIXELS)
 ────────────────────────────────────────────────── */
 function captura(){
   rnd.render(scene, cam);
+  const outCv = document.createElement('canvas');
+  outCv.width = rnd.domElement.width;
+  outCv.height = rnd.domElement.height;
+  const ctx = outCv.getContext('2d');
+  ctx.drawImage(rnd.domElement, 0, 0);
+
+  // Watermark bar on bottom
+  const barH = Math.max(48, Math.round(outCv.height * 0.055));
+  ctx.fillStyle = 'rgba(5, 10, 24, 0.92)';
+  ctx.fillRect(0, outCv.height - barH, outCv.width, barH);
+  ctx.fillStyle = '#00e5ff';
+  ctx.fillRect(0, outCv.height - barH, outCv.width, 2);
+
+  ctx.fillStyle = '#00e5ff';
+  ctx.font = 'bold ' + Math.round(barH * 0.38) + 'px "Inter", sans-serif';
+  ctx.fillText('GERSON MISAEL PINTADO HUAMAN · SEMANA 9 · IESTP HERMANOS CÁRCAMO', 24, outCv.height - barH * 0.52);
+
+  ctx.fillStyle = '#e2e8f0';
+  ctx.font = Math.round(barH * 0.28) + 'px "Inter", sans-serif';
+  ctx.fillText('Unidad Didáctica: Diseño de Data Center (DDC) · Docente: Dr. Javier Eduardo Jaramillo Atoche', 24, outCv.height - barH * 0.18);
+
   const a=document.createElement('a');
-  a.download='Simulacion_3D_DataCenter_Gerson_Pintado_Huaman.png';
-  a.href=rnd.domElement.toDataURL('image/png');
+  a.download='Simulacion_3D_DataCenter_Gerson_Pintado_Huaman_Semana9.png';
+  a.href=outCv.toDataURL('image/png');
   a.click();
-  toast('📸 Captura descargada: "Simulacion_3D_DataCenter_Gerson_Pintado_Huaman.png"');
+  toast('📸 Captura con marca de agua oficial de Gerson Pintado descargada.');
 }
 
 /* ──────────────────────────────────────────────────
@@ -1175,7 +1216,6 @@ function tAudio(){
     masterG=audioCtx.createGain(); masterG.gain.value=0.001;
     masterG.connect(audioCtx.destination);
 
-    /* Whispering Fan Pink Noise */
     const buf=audioCtx.createBuffer(1, audioCtx.sampleRate*2, audioCtx.sampleRate);
     const dat=buf.getChannelData(0);
     let b0=0,b1=0,b2=0,b3=0,b4=0,b5=0,b6=0;
@@ -1191,7 +1231,6 @@ function tAudio(){
     const fanFilt=audioCtx.createBiquadFilter(); fanFilt.type='lowpass'; fanFilt.frequency.value=420;
     fanSrc.connect(fanFilt); fanFilt.connect(masterG); fanSrc.start();
 
-    /* 60Hz Compressor Hum */
     oscComp=audioCtx.createOscillator(); oscComp.type='triangle'; oscComp.frequency.value=58;
     const compG=audioCtx.createGain(); compG.gain.value=0.18;
     oscComp.connect(compG); compG.connect(masterG); oscComp.start();
